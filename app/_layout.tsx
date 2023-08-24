@@ -5,6 +5,8 @@ import { SplashScreen, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Platform, useColorScheme } from 'react-native';
 
+import * as SecureStore from 'expo-secure-store';
+
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from "expo-constants";
@@ -14,32 +16,20 @@ import { Text, View } from '../components/Themed';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
   }),
 });
 
 
-// Can use this function below or use Expo's Push Notification Tool from: https://expo.dev/notifications
-async function sendPushNotification(expoPushToken : string) {
-  const message = {
-    to: expoPushToken,
-    sound: 'default',
-    title: 'Original Title',
-    body: 'And here is the body!',
-    data: { someData: 'goes here' },
-  };
 
-  await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
+// Save Expo token to secure store 
+async function saveExpoToken(key : string, value : string) {
+  await SecureStore.setItemAsync(key, value);
 }
+
+
+
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -86,7 +76,6 @@ export default function RootLayout() {
       // @ts-ignore 
       registerForPushNotificationsAsync().then(token => setExpoPushToken(token.data));
 
-      // set
   
       notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
         setNotification(notification);
@@ -96,6 +85,8 @@ export default function RootLayout() {
         console.log(response);
       });
 
+
+      saveExpoToken("@expoToken", expoPushToken);
 
 
   
