@@ -17,6 +17,7 @@ async function sendPushNotification(expoPushToken : string) {
     data: { someData: 'goes here' },
   };
 
+  // Send the notification to expo API 
   await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: {
@@ -49,7 +50,7 @@ export default function TabOneScreen() {
 
   // Use effect 
   useEffect(() => {
-    getExpoToken("@expoToken")
+    getExpoToken("expoToken")
   
     return () => {
     }

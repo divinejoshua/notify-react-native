@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router';
+import { SplashScreen, Stack, router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Platform, useColorScheme } from 'react-native';
 
@@ -17,9 +17,11 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
-    shouldSetBadge: true,
+    shouldSetBadge: false,
   }),
 });
+
+
 
 
 
@@ -28,6 +30,38 @@ async function saveExpoToken(key : string, value : string) {
   await SecureStore.setItemAsync(key, value);
 }
 
+
+
+// Notification observer for notification url 
+function useNotificationObserver() {
+  useEffect(() => {
+    let isMounted = true;
+
+    function redirect(notification: Notifications.Notification) {
+      const url = notification.request.content.data?.url;
+      if (url) {
+        router.push(url);
+      }
+    }
+
+    Notifications.getLastNotificationResponseAsync()
+      .then(response => {
+        if (!isMounted || !response?.notification) {
+          return;
+        }
+        redirect(response?.notification);
+      });
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      redirect(response.notification);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.remove();
+    };
+  }, []);
+}
 
 
 
@@ -52,6 +86,8 @@ export default function RootLayout() {
   const notificationListener = useRef<any>([]);
   const responseListener = useRef<any>();
 
+// Notification observer 
+  useNotificationObserver()
 
 
   const [loaded, error] = useFonts({
@@ -85,8 +121,7 @@ export default function RootLayout() {
         console.log(response);
       });
 
-
-      saveExpoToken("@expoToken", expoPushToken);
+      
 
 
   
@@ -143,6 +178,8 @@ async function registerForPushNotificationsAsync() {
       projectId: Constants.expoConfig.extra.eas.projectId,
     });
     console.log(token);
+    saveExpoToken("expoToken", token.data)
+    
   } else {
     alert('Must use physical device for Push Notifications');
   }
