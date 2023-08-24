@@ -85,6 +85,8 @@ export default function RootLayout() {
     useEffect(() => {
       // @ts-ignore 
       registerForPushNotificationsAsync().then(token => setExpoPushToken(token.data));
+
+      // set
   
       notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
         setNotification(notification);
@@ -93,6 +95,9 @@ export default function RootLayout() {
       responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
         console.log(response);
       });
+
+
+
   
       return () => {
         Notifications.removeNotificationSubscription(notificationListener.current);
